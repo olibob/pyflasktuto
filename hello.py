@@ -1,13 +1,15 @@
-from flask import Flask
+from flask import Flask, request, make_response
+from flask_script import Manager
+
 app = Flask(__name__)
+manager = Manager(app)
 
 @app.route('/')
 def index():
-    return '<h1>Hello World!</h1>'
-
-@app.route('/user/<name>')
-def user(name):
-    return '<h1>Hello, %s</h1>' % name
+    user_agent = request.headers.get('User-Agent') 
+    response = make_response('You\'re browser is <p>{}</p>'.format(user_agent))
+    response.set_cookie('answer', '42')
+    return response
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    manager.run() 
