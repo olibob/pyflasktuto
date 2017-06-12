@@ -6,6 +6,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import Required
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate, MigrateCommand
 from datetime import datetime
 import os
 
@@ -53,6 +54,10 @@ class User(db.Model):
 def make_shell_context():
     return dict(app = app, db = db, User = User, Role = Role)
 manager.add_command('shell', Shell(make_context = make_shell_context))
+
+# db Migration
+migrate = Migrate(app, db)
+manager.add_command('db', MigrateCommand)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
