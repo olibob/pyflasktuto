@@ -1,2 +1,3 @@
 __*
-data.sqlite
+data*.sqlite
+venv
