@@ -2,7 +2,7 @@ from flask import render_template, redirect, request, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from . import auth
 from ..models import User
-from .forms import LoginForm, RegistrationForm, PasswordUpdateForm, PasswordResetRequestForm
+from .forms import LoginForm, RegistrationForm, PasswordUpdateForm, PasswordResetRequestForm, PasswordResetForm
 from .. import db
 from ..email import send_email
 from uuid import uuid4
@@ -36,7 +36,7 @@ def register():
         db.session.commit()
         token = user.generate_confirmation_token()
         send_email(user.email, 'Confirm Your Account',
-                'aut/email/confirm', user = user, token = token)
+                'auth/email/confirm', user = user, token = token)
         flash('A confirmation email has been sent to you.')
         return redirect(url_for('main.index'))
     return render_template('auth/register.html', form=form)
@@ -91,7 +91,7 @@ def update_password():
 
 @auth.route('/reset', methods=['GET', 'POST'])
 def password_reset():
-    form = PasswordResetiRequestForm()
+    form = PasswordResetRequestForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email = form.email.data).first()
         token = user.generate_confirmation_token()
@@ -101,7 +101,7 @@ def password_reset():
         return redirect(url_for('main.index'))
     return render_template('auth/password_reset.html', form = form) 
 
-@auth.route('/reset/<token>')
+@auth.route('/reset/<token>', methods=['GET', 'POST'])
 def reset(token):
     form = PasswordResetForm()
     tempUser = User()
@@ -109,6 +109,8 @@ def reset(token):
     if form.validate_on_submit():
         user.password = form.new_password.data
         db.session.add(user)
-    render_template('auth/password_reset.html', form = form)
+        flash('Your password has been reset successfully.')
+        return redirect(url_for('auth.login'))
+    return render_template('auth/password_reset.html', form = form)
      
 

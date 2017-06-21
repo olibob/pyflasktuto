@@ -33,7 +33,7 @@ class PasswordUpdateForm(FlaskForm):
     new_password = PasswordField('New Password', validators=[Required(),
         EqualTo('confirm_password', message = 'Passwords must match.' )])
     confirm_password = PasswordField('Confirm New Password', validators=[Required()])
-    submit = SubmitField('Reset Password')
+    submit = SubmitField('Update Password')
 
 class PasswordResetRequestForm(FlaskForm):
     email = StringField('Email', validators=[Required(), Length(1, 64), Email()])
@@ -42,3 +42,9 @@ class PasswordResetRequestForm(FlaskForm):
     def validate_email(self, field):
         if not User.query.filter_by(email = field.data).first():
             raise ValidationError('No user found with this email.')
+
+class PasswordResetForm(FlaskForm):
+    new_password = PasswordField('New Password', validators=[Required(),
+        EqualTo('confirm_password', message = 'Passwords must match.' )])
+    confirm_password = PasswordField('Confirm New Password', validators=[Required()])
+    submit = SubmitField('Reset Password')
