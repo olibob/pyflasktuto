@@ -1,0 +1,11 @@
+Dear {{ user.username }},
+
+To update your email, please click on the following link:
+
+{{ url_for('auth.update_email', token = token, _external = True) }}
+
+Sincerely,
+
+The Flasky Team
+
+Note: replies to this email are not monitored.
