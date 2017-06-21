@@ -2,7 +2,7 @@ from flask import render_template, redirect, request, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from . import auth
 from ..models import User
-from .forms import LoginForm, RegistrationForm, PasswordUpdateForm, PasswordResetRequestForm, PasswordResetForm
+from .forms import LoginForm, RegistrationForm, PasswordUpdateForm, PasswordResetRequestForm, PasswordResetForm, EmailUpdateRequestForm
 from .. import db
 from ..email import send_email
 from uuid import uuid4
@@ -105,7 +105,7 @@ def password_reset():
 def reset(token):
     form = PasswordResetForm()
     tempUser = User()
-    user = User.query.filter_by(id = tempUser.get_id_from_token(token)).first()
+    user = User.query.filter_by(id = tempUser.get_info_from_token(token)[0]).first()
     if form.validate_on_submit():
         user.password = form.new_password.data
         db.session.add(user)
@@ -114,3 +114,26 @@ def reset(token):
     return render_template('auth/password_reset.html', form = form)
      
 
+@auth.route('/email', methods=['GET', 'POST'])
+@login_required
+def update_email_request():
+    form = EmailUpdateRequestForm()
+    if form.validate_on_submit():
+        token = current_user.generate_confirmation_token(form.email.data)
+        send_email(current_user.email, 'Email Update',
+                'auth/email/update_email', user = current_user, token = token)
+        flash('An email explaining how to update your email has been sent to you.')
+        return redirect(url_for('main.index'))
+    return render_template('auth/update_email.html', form = form)
+
+@auth.route('/email/<token>', methods=['GET', 'POST'])
+@login_required
+def update_email(token):
+    tempUser = User()
+    info = tempUser.get_info_from_token(token)
+    user = User.query.filter_by(id = info[0]).first()
+    user.email = info[1]
+    db.session.add(user)
+    flash('Your email has been changed successfully.')
+    return redirect(url_for('main.index'))
+     

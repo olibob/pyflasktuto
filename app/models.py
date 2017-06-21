@@ -41,20 +41,20 @@ class User(UserMixin, db.Model):
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    def generate_confirmation_token(self, expiration = 3600):
+    def generate_confirmation_token(self, email = None, expiration = 3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
-        return s.dumps({'confirm': self.id})
+        return s.dumps({'confirm': self.id, 'email': email})
 
-    def get_id_from_token(self, token):
+    def get_info_from_token(self, token):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token)
         except:
             return False
-        return data.get('confirm')
+        return (data.get('confirm'), data.get('email'))
 
     def confirm(self, token):
-        if self.get_id_from_token(token) != self.id:
+        if self.get_info_from_token(token)[0] != self.id:
             return False
         self.confirmed = True
         db.session.add(self)
