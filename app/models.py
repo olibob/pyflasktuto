@@ -45,10 +45,17 @@ class User(UserMixin, db.Model):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
         return s.dumps({'confirm': self.id})
 
-    def confirm(self, token):
+    def get_id_from_token(self, token):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token)
         except:
             return False
-        # TODO - Continue from page 103
+        return data.get('confirm')
+
+    def confirm(self, token):
+        if self.get_id_from_token(token) != self.id:
+            return False
+        self.confirmed = True
+        db.session.add(self)
+        return True
